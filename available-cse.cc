@@ -138,30 +138,30 @@ class PrintPass : public llvm::FunctionPass
 			i2=0;
 			for(llvm::BasicBlock::iterator ins=basic_block->begin(),e=basic_block->end();ins!=e;++ins,i2++)
 			{
-			if(i2<n1-1)
-			{
-			expi=ins->getName();
-			exp=ins->getOpcodeName();
-			for (unsigned i1 = 0; i1 < (ins->getNumOperands()); i1++)
-			{
-			llvm::Value *arg = ins->getOperand(i1);
-			exp1=(arg->getName());
-			if(exp1=="")
-			{
-				llvm::ConstantInt* I=llvm::dyn_cast<llvm::ConstantInt>(arg);
-				int ss=I->getSExtValue();
-				exp1=std::to_string(ss);
-			}
-			exp=exp+ exp1;
-			}
-			std::string d1= ins->getOpcodeName();
-			if(d1!="store")
-			{
-			//exp=expi+"="+exp;
-			}
-			dummy.insert(exp);
-			//((basic_block_table[basic_block->getName()])->out.insert(exp));
-			}
+				if(i2<n1-1)
+				{
+				expi=ins->getName();
+				exp=ins->getOpcodeName();
+				for (unsigned i1 = 0; i1 < (ins->getNumOperands()); i1++)
+				{
+				llvm::Value *arg = ins->getOperand(i1);
+				exp1=(arg->getName());
+				if(exp1=="")
+				{
+					llvm::ConstantInt* I=llvm::dyn_cast<llvm::ConstantInt>(arg);
+					int ss=I->getSExtValue();
+					exp1=std::to_string(ss);
+				}
+				exp=exp+ exp1;
+				}
+				std::string d1= ins->getOpcodeName();
+				if(d1!="store")
+				{
+				//exp=expi+"="+exp;
+				}
+				dummy.insert(exp);
+				//((basic_block_table[basic_block->getName()])->out.insert(exp));
+				}
 			}
 		}
 	}
@@ -178,7 +178,7 @@ class PrintPass : public llvm::FunctionPass
 		llvm::errs() << basic_block->getName() << ": ";
 		PrintSeto((basic_block_table[basic_block->getName()])->out);
 		llvm::errs() <<'\n';
-		}
+	}
 	//-----------------------Project--------------------------//
 		llvm::errs() << "--------" << '\n';
 		do
@@ -359,6 +359,8 @@ class CSE : public llvm::FunctionPass
 	// a unique pass identifier.
 	CSE() : llvm::FunctionPass(ID) { }
 	// Virtual function overridden to implement the pass functionality.
+		std::vector<llvm::Instruction*> rpins;
+		std::vector<llvm::Instruction*> rmins;
 	bool runOnFunction(llvm::Function &function) override
 	{
 		// Print function name
@@ -406,7 +408,8 @@ class CSE : public llvm::FunctionPass
 					}
 				}
 				
-			}		
+			}
+				
 		}
 		llvm::errs()<<"-------------------"<<'\n';
 		std::map<std::string,Instruction*>::iterator itm;
@@ -416,6 +419,7 @@ class CSE : public llvm::FunctionPass
 			std::string expression1="";
 			int c_str=0;
 			std::string inst_name;
+			int c=0;int c1=0;
 			//llvm::BasicBlock iterator insf;
 			for(itm=Instruction_table.begin();itm!=Instruction_table.end();++itm)
 			{
@@ -428,11 +432,15 @@ class CSE : public llvm::FunctionPass
 							for(llvm::BasicBlock::iterator ins2=basic_block->begin();ins2!=basic_block->end();++ins2)
 							{
 								inst_name=ins2->getName();
+								//llvm::errs()<<ins2->getName();
 								if(inst_name==itm->first)
 								{
 									llvm::errs()<<"CSE:"<<'\n';
 									llvm::errs()<<"Removed Instruction:";
 									ins2->dump();
+									 rmins.push_back(ins2);
+								//	c++;
+									//llvm::errs()<<c<<"\n";
 								}
 							}
 						}
@@ -454,6 +462,7 @@ class CSE : public llvm::FunctionPass
 										expression1=std::to_string(ss1);
 									}
 									expression=expression+expression1;
+									//llvm::ReplaceInstWithInst(ins2,ins1);
 								}
 								std::string check_str=*its1;
 								c_str=0;
@@ -461,7 +470,16 @@ class CSE : public llvm::FunctionPass
 								{
 									llvm::errs()<<"Replaced With:";
 									ins1->dump();
+									rpins.push_back(ins1);
+									/*llvm::errs()<<"**********"<<'\n';
+									rmins[c1]->dump();
+									rpins[c1]->dump();
+									c1++;
+									llvm::errs()<<"**********"<<'\n';*/
+									//llvm::errs()<<c1<<"\n";
 									llvm::errs()<<"-------------------"<<'\n';
+									
+									
 									c_str=1;
 									break;
 								}
@@ -478,6 +496,16 @@ class CSE : public llvm::FunctionPass
 					}
 				}
 			}
+	for(int re=0;re<rmins.size();re++)
+	{
+		//rmins[re]->dump();
+		//rpins[re]->dump();
+		
+		rmins[re]->replaceAllUsesWith(rpins[re]);  //***//
+
+		rmins[re]->getParent()->getInstList().erase(rmins[re]);	//***//
+	}
+			
 	}
 	bool ExtendSetins(std::set<std::string> &set1,std::set<std::string> &set2)
 	{
@@ -520,6 +548,8 @@ class CSE : public llvm::FunctionPass
 			llvm::errs()<<"}\n";
 	}	
 };
+
+
 // Pass identifier
 char PrintPass::ID = 0;
 // Pass registration. Pass will be available as 'print' from the LLVM
