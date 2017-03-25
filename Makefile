@@ -3,9 +3,9 @@ acse:
 m2r:
 	cat test.ll 2>&1|opt -mem2reg |llvm-dis>test1.ll
 test1:
-	cat test1.ll | opt -mem2reg -load ./pass.so -avexp -cse 
+	cat test1.ll | opt -mem2reg -load ./pass.so -avexp -cse |llvm-dis
 test2:
-	cat test2.ll | opt -mem2reg -load ./pass.so -avexp -cse
+	cat test2.ll | opt -mem2reg -load ./pass.so -avexp -cse|llvm-dis
 cfg:
 	cat test1.ll 2>&1 | opt -dot-cfg > /dev/null
 clean:
