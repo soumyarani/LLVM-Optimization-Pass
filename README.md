@@ -1,7 +1,9 @@
 # LLVM-Optimization-Pass
 Implemented Data flow analysis pass available expressions on the intermediate LLVM code and Optimized the Code in compile-time after the analysis by eliminating the Common sub expression.
 
+Added a simple scr.sh file which executes all the commands in make file to see the required output.
 
+executing scr.sh will do the following things.
 
 1.make acse
 ->will execute g++ -g -fPIC -shared available-cse.cc -o pass.so -std=c++11 `llvm-config --cppflags` 
