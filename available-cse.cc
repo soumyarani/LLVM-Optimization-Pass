@@ -49,6 +49,35 @@ namespace
 	std::map<std::string,Instruction*> Instruction_table;
 	BasicBlockInfo *BBI;
 	Instruction* INS;
+	bool ExtendSet(std::set<std::string> &set1,std::set<std::string> &set2)
+	{
+		int last_size=set1.size();
+		for(const std::string &s : set2)
+			set1.insert(s);
+		return set1.size()-last_size;
+	}
+
+	void PrintSetg(std::set<std::string> &set)
+	{
+		llvm::errs()<<"gen="<<"{";
+		for(const std::string &s:set)
+			llvm::errs()<<' '<<s;
+		llvm::errs()<<"}\n";
+	}
+	void PrintSeto(std::set<std::string> &set)
+	{
+			llvm::errs()<<"out="<<"{";
+			for(const std::string &s:set)
+					llvm::errs()<<' '<<s;
+			llvm::errs()<<"}\n";
+	}
+	void PrintSeti(std::set<std::string> &set)
+	{
+			llvm::errs()<<"in="<<"{";
+			for(const std::string &s:set)
+					llvm::errs()<<' '<<s;
+			llvm::errs()<<"}\n";
+	}
 class PrintPass : public llvm::FunctionPass
 {
 	public:
@@ -320,35 +349,7 @@ class PrintPass : public llvm::FunctionPass
 
 		return v3;
 	}
-	bool ExtendSet(std::set<std::string> &set1,std::set<std::string> &set2)
-	{
-		int last_size=set1.size();
-		for(const std::string &s : set2)
-			set1.insert(s);
-		return set1.size()-last_size;
-	}
-
-	void PrintSetg(std::set<std::string> &set)
-	{
-		llvm::errs()<<"gen="<<"{";
-		for(const std::string &s:set)
-			llvm::errs()<<' '<<s;
-		llvm::errs()<<"}\n";
-	}
-	void PrintSeto(std::set<std::string> &set)
-	{
-			llvm::errs()<<"out="<<"{";
-			for(const std::string &s:set)
-					llvm::errs()<<' '<<s;
-			llvm::errs()<<"}\n";
-	}
-	void PrintSeti(std::set<std::string> &set)
-	{
-			llvm::errs()<<"in="<<"{";
-			for(const std::string &s:set)
-					llvm::errs()<<' '<<s;
-			llvm::errs()<<"}\n";
-	}
+	
 };
 class CSE : public llvm::FunctionPass
 {
@@ -397,14 +398,16 @@ class CSE : public llvm::FunctionPass
 		
 					std::string cmps=ins->getOpcodeName();
 					if(cmps!="store")
-					insPrintSeti(Instruction_table[ins->getName()]->inseti);
-					ExtendSetins(dset,Instruction_table[ins->getName()]->insetg);
-					ExtendSetins(dset,Instruction_table[ins->getName()]->inseti);
+					PrintSeti(Instruction_table[ins->getName()]->inseti);
+					ExtendSet(dset,Instruction_table[ins->getName()]->insetg);
+					ExtendSet(dset,Instruction_table[ins->getName()]->inseti);
 					Instruction_table[ins->getName()]->inseto=dset;
 					if(cmps!="store")
 					{
-					insPrintSetg(Instruction_table[ins->getName()]->insetg);
-					insPrintSeto(Instruction_table[ins->getName()]->inseto);
+					PrintSetg(Instruction_table[ins->getName()]->insetg);
+					
+					
+					PrintSeto(Instruction_table[ins->getName()]->inseto);
 					}
 				}
 				
@@ -496,57 +499,18 @@ class CSE : public llvm::FunctionPass
 					}
 				}
 			}
-	for(int re=0;re<rmins.size();re++)
-	{
-		//rmins[re]->dump();
-		//rpins[re]->dump();
+			for(int re=0;re<rmins.size();re++)
+			{
+				//rmins[re]->dump();
+				//rpins[re]->dump();
+				
+				rmins[re]->replaceAllUsesWith(rpins[re]);  //***//
 		
-		rmins[re]->replaceAllUsesWith(rpins[re]);  //***//
-
-		rmins[re]->getParent()->getInstList().erase(rmins[re]);	//***//
-	}
+				rmins[re]->getParent()->getInstList().erase(rmins[re]);	//***//
+			}
 			
 	}
-	bool ExtendSetins(std::set<std::string> &set1,std::set<std::string> &set2)
-	{
-		int last_size=set1.size();
-		for(const std::string &s : set2)
-			set1.insert(s);
-		return set1.size()-last_size;
-	}
-	std::vector<std::string> instersection(std::vector<std::string> &v1, std::vector<std::string> &v2)
-	{
 
-		std::vector<std::string> v3;
-
-		sort(v1.begin(), v1.end());
-		sort(v2.begin(), v2.end());
-
-		set_intersection(v1.begin(),v1.end(),v2.begin(),v2.end(),back_inserter(v3));
-
-		return v3;
-	}
-	void insPrintSetg(std::set<std::string> &set)
-	{
-		llvm::errs()<<"gen="<<"{";
-		for(const std::string &s:set)
-			llvm::errs()<<' '<<s;
-		llvm::errs()<<"}\n";
-	}
-	void insPrintSeto(std::set<std::string> &set)
-	{
-			llvm::errs()<<"out="<<"{";
-			for(const std::string &s:set)
-					llvm::errs()<<' '<<s;
-			llvm::errs()<<"}\n";
-	}
-	void insPrintSeti(std::set<std::string> &set)
-	{
-			llvm::errs()<<"in="<<"{";
-			for(const std::string &s:set)
-					llvm::errs()<<' '<<s;
-			llvm::errs()<<"}\n";
-	}	
 };
 
 
