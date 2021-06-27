@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.4)
+SET(CMAKE_C_COMPILER /usr/lib/llvm-10/bin/clang-10)
+SET(CMAKE_CXX_COMPILER /usr/lib/llvm-10/bin/clang++)
+set(CMAKE_CXX_STANDARD 14 CACHE STRING "")
+if(NOT DEFINED ENV{LLVM_HOME})
+    message(FATAL_ERROR "$LLVM_HOME is not defined")
+endif()
+if(NOT DEFINED ENV{LLVM_DIR})
+    set(ENV{LLVM_DIR} $ENV{LLVM_HOME}/lib/cmake/llvm)
+endif()
+find_package(LLVM REQUIRED CONFIG)
+add_definitions(${LLVM_DEFINITIONS})
+include_directories(${LLVM_INCLUDE_DIRS})
+link_directories(${LLVM_LIBRARY_DIRS})
+
+add_subdirectory(dataflow)  # Use your pass name here.
